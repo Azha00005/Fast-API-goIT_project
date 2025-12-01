@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+
 # 1. Определение URL базы данных
 # Указываем, что будем использовать SQLite и файл базы данных называется 'sql_app.db'
 SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
@@ -24,9 +25,13 @@ SessionLocal = sessionmaker(
     bind=engine        # Связываем этот класс сессии с нашим движком (engine)
 )
 
+# Цей виклик створює всі таблиці
+Base = declarative_base()
+
+
 #Функція get_db виконує роль генератора сесій (session generator) і використовується у FastAPI як залежність.
 #Основна мета цієї функції — створити нову сесію бази даних для кожного HTTP-запиту, гарантувати її коректне використання і закриття після завершення запиту, незалежно від того, чи була помилка, чи ні.
-async def get_db():
+def get_db():
     db = SessionLocal()
     try:
         yield db
