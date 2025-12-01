@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import String, DateTime, func, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 
+
 # === 1. Базовий клас декларативного мапування ===
 # Він надає метадані для всіх ваших моделей
 class Base(DeclarativeBase):
@@ -27,7 +28,7 @@ class Owner(Base):
 
 # === 3. Модель Товару (Item) ===
 class Cat(Base):
-    __tablename__ = "cats"
+    __tablename__ = "Cat"
     
     nickname: Mapped[str] = mapped_column(String(100), index=True)
     age: Mapped[int]
@@ -38,5 +39,5 @@ class Cat(Base):
     owner_id: Mapped[int] = mapped_column(ForeignKey("owner.id"), nullable=True)
     
     # Відношення Many-to-One: Товар належить одному користувачу, backref створює зворотне відношення і прописує автоматично сам в таблиці власника
-    owner: Mapped["Owner"] = relationship("Owner", backref="cats")
+    owner: Mapped["Owner"] = relationship("Owner", backref="Cat")
     
