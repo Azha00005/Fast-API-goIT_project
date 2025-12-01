@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from pydantic import BaseModel, EmailStr
+from models import Owner
 
 from db import get_db
 
@@ -36,3 +38,21 @@ def healthchecker(db: Session = Depends(get_db)):
             "status": "unhealthy",
             "db_connection": "Failed"
         }, status.HTTP_500_INTERNAL_SERVER_ERROR
+    
+
+class OwnerModel(BaseModel):
+    email:EmailStr
+
+@app.get("/owners")
+async def get_owners(db: Session = Depends(get_db)):
+    owners = db.query(Owner).all()
+    return owners
+
+@app.post("/owners")
+async def get_owners(body: OwnerModel, db: Session = Depends(get_db)):
+    owner = Owner(**body.dict())
+    db.add(owner)
+    db.commit()
+    #для получения id после вставки
+    db.refresh(owner)
+    return owner
