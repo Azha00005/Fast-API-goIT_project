@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Path, Query
+from fastapi import FastAPI, Depends, HTTPException, status, Path, Query, Request
+import time 
 from sqlalchemy.orm import Session
 from sqlalchemy import text, select
 from pydantic import BaseModel, EmailStr, Field
@@ -9,6 +10,18 @@ from models import Owner, Cat
 
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
+
+
+
 
 @app.get("/")
 def root():
@@ -214,3 +227,24 @@ async def delete_cats(
     db.commit()
     return cats 
 
+
+
+class PetStatusVaccinated(BaseModel):
+     vaccinated: bool
+
+
+@app.patch("/cats/{cats_id}", response_model=ResponseCat, tags=["cats"])
+async def update_cats(
+     body: PetStatusVaccinated, 
+     cats_id:int = Path(..., ge=1), 
+     db: Session = Depends(get_db)
+     ):
+    stmt = select(Cat).filter_by(id=cats_id)
+    cats = db.execute(stmt).scalars().first()
+    if cats is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail="Not found")
+    cats.vaccinated = body.vaccinated
+    db.commit()
+    return cats
